@@ -4,6 +4,7 @@
 const express = require("express");
 const morgan = require("morgan");
 const { sequelize } = require("./models");
+const users = require("./routes/users");
 
 // variable to enable global error logging
 const enableGlobalErrorLogging =
@@ -21,6 +22,9 @@ app.get("/", (req, res) => {
     message: "Welcome to the REST API project!",
   });
 });
+
+// Add routes.
+app.use("/api", users);
 
 // send 404 if no other route matched
 app.use((req, res) => {

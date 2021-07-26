@@ -4,7 +4,10 @@
 const express = require("express");
 const morgan = require("morgan");
 const { sequelize } = require("./models");
+
+//* load routes
 const users = require("./routes/users");
+const courses = require("./routes/courses");
 
 // variable to enable global error logging
 const enableGlobalErrorLogging =
@@ -23,13 +26,16 @@ app.get("/", (req, res) => {
   });
 });
 
-// Add routes.
+app.use(express.json());
+
+//* Add route middleware.
 app.use("/api", users);
+app.use("/api", courses);
 
 // send 404 if no other route matched
 app.use((req, res) => {
   res.status(404).json({
-    message: "Route Not Found",
+    message: "Not Found",
   });
 });
 

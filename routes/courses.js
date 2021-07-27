@@ -65,8 +65,10 @@ router.delete(
     const course = await Course.findByPk(req.params.id);
 
     if (course) {
-      await course.destroy();
+      await Course.destroy(course);
       res.status(204).json({ message: "Course deleted" }).end();
+    } else {
+      res.status(404).json({ message: "Course Not found" });
     }
   })
 );

@@ -11,7 +11,9 @@ const router = express.Router();
 router.get(
   "/courses",
   asyncHandler(async (req, res) => {
-    const courses = await Course.findAll();
+    const courses = await Course.findAll({
+      attributes: { exclude: ["createdAt", "updatedAt"] },
+    });
     res.json(courses);
   })
 );
@@ -21,7 +23,9 @@ router.get(
 router.get(
   "/courses/:id",
   asyncHandler(async (req, res) => {
-    const course = await Course.findByPk(req.params.id);
+    const course = await Course.findByPk(req.params.id, {
+      attributes: { exclude: ["createdAt", "updatedAt"] },
+    });
     if (course) {
       res.json(course);
     } else {
@@ -36,7 +40,10 @@ router.post(
   "/courses",
   asyncHandler(async (req, res) => {
     const course = await Course.create(req.body);
-    res.status(201).location(`/courses/${course.id}`).end();
+    res
+      .status(201)
+      .location(`/courses/${course.id}`)
+      .json({ message: "Course Created" });
   })
 );
 
@@ -49,8 +56,9 @@ router.put(
 
     if (course) {
       // * update the database
-      await Course.update(req.body);
-      res.status(204).json({ message: "Course Updated" }).end();
+      console.log(req.body);
+      await course.update(req.body);
+      res.status(204).json({ message: "Course Updated" });
     } else {
       res.status(404).json({ message: "Course Not found" });
     }
@@ -65,8 +73,8 @@ router.delete(
     const course = await Course.findByPk(req.params.id);
 
     if (course) {
-      await Course.destroy(course);
-      res.status(204).json({ message: "Course deleted" }).end();
+      await course.destroy();
+      res.status(204).end();
     } else {
       res.status(404).json({ message: "Course Not found" });
     }

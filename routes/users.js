@@ -12,7 +12,9 @@ const router = express.Router();
 router.get(
   "/users",
   asyncHandler(async (req, res) => {
-    const users = await User.findAll();
+    const users = await User.findAll({
+      attributes: { exclude: ["createdAt", "updatedAt", "password"] },
+    });
     res.json(users);
   })
 );
@@ -22,8 +24,24 @@ router.get(
 router.post(
   "/users",
   asyncHandler(async (req, res) => {
-    const user = await User.create(req.body);
-    res.status(201).location("/").end();
+    try {
+      await User.create(req.body);
+      res.status(201).location("/").end();
+    } catch (err) {
+      console.log("Error ", err.name);
+
+      // * checks the type of Sequelize error
+      if (
+        err.name === "SequelizeValidationError" ||
+        err.name === "SequelizeUniqueConstraintError"
+      ) {
+        const errors = err.errors.map((err) => err.message);
+        res.status(400).json({ errors });
+      } else {
+        // * checks the type of Sequelize error
+        throw err;
+      }
+    }
   })
 );
 

@@ -39,11 +39,27 @@ router.get(
 router.post(
   "/courses",
   asyncHandler(async (req, res) => {
-    const course = await Course.create(req.body);
-    res
-      .status(201)
-      .location(`/courses/${course.id}`)
-      .json({ message: "Course Created" });
+    try {
+      const course = await Course.create(req.body);
+      res
+        .status(201)
+        .location(`/courses/${course.id}`)
+        .json({ message: "Course Created" });
+    } catch (err) {
+      console.log("Error ", err.name);
+
+      // * checks the type of Sequelize error
+      if (
+        err.name === "SequelizeValidationError" ||
+        err.name === "SequelizeUniqueConstraintError"
+      ) {
+        const errors = err.errors.map((err) => err.message);
+        res.status(400).json({ errors });
+      } else {
+        // * if not a validation or unique constraint error throw an error thats caught by global err handler
+        throw err;
+      }
+    }
   })
 );
 
@@ -52,15 +68,30 @@ router.post(
 router.put(
   "/courses/:id",
   asyncHandler(async (req, res) => {
-    const course = await Course.findByPk(req.params.id);
+    try {
+      const course = await Course.findByPk(req.params.id);
 
-    if (course) {
-      // * update the database
-      console.log(req.body);
-      await course.update(req.body);
-      res.status(204).json({ message: "Course Updated" });
-    } else {
-      res.status(404).json({ message: "Course Not found" });
+      if (course) {
+        // * update the database
+        await course.update(req.body);
+        res.status(204).json({ message: "Course Updated" });
+      } else {
+        res.status(404).json({ message: "Course Not found" });
+      }
+    } catch (err) {
+      console.log("Error ", err.name);
+
+      // * checks the type of Sequelize error
+      if (
+        err.name === "SequelizeValidationError" ||
+        err.name === "SequelizeUniqueConstraintError"
+      ) {
+        const errors = err.errors.map((err) => err.message);
+        res.status(400).json({ errors });
+      } else {
+        // * checks the type of Sequelize error
+        throw err;
+      }
     }
   })
 );

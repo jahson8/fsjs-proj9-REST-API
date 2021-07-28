@@ -3,7 +3,9 @@
 // load modules
 const express = require("express");
 const { asyncHandler } = require("../middleware/async-handler");
+const { authenticateUser } = require("../middleware/auth-user");
 const { Course } = require("../models");
+const { User } = require("../models");
 const router = express.Router();
 
 //TODO: Send a GET request to /courses route that will return all courses including the User associated with each course and a 200 HTTP status code.
@@ -12,6 +14,13 @@ router.get(
   "/courses",
   asyncHandler(async (req, res) => {
     const courses = await Course.findAll({
+      include: [
+        {
+          model: User,
+          as: "userInfo",
+          attributes: { exclude: ["password", "createdAt", "updatedAt"] },
+        },
+      ],
       attributes: { exclude: ["createdAt", "updatedAt"] },
     });
     res.json(courses);
@@ -24,6 +33,13 @@ router.get(
   "/courses/:id",
   asyncHandler(async (req, res) => {
     const course = await Course.findByPk(req.params.id, {
+      include: [
+        {
+          model: User,
+          as: "userInfo",
+          attributes: { exclude: ["password", "createdAt", "updatedAt"] },
+        },
+      ],
       attributes: { exclude: ["createdAt", "updatedAt"] },
     });
     if (course) {
@@ -38,12 +54,18 @@ router.get(
 
 router.post(
   "/courses",
+  authenticateUser,
   asyncHandler(async (req, res) => {
     try {
-      const course = await Course.create(req.body);
+      const courseBody = req.body;
+
+      //* adds userId to req.body if the user is authenticated
+      courseBody.userId = req.currentUser.id;
+
+      const course = await Course.create(courseBody);
       res
         .status(201)
-        .location(`/courses/${course.id}`)
+        .location(`/api/courses/${course.id}`)
         .json({ message: "Course Created" });
     } catch (err) {
       console.log("Error ", err.name);
@@ -67,14 +89,22 @@ router.post(
 
 router.put(
   "/courses/:id",
+  authenticateUser,
   asyncHandler(async (req, res) => {
     try {
       const course = await Course.findByPk(req.params.id);
 
       if (course) {
-        // * update the database
-        await course.update(req.body);
-        res.status(204).json({ message: "Course Updated" });
+        // checks if the course belongs to the current user
+        if (req.currentUser.id === course.userId) {
+          // * update the database
+          await course.update(req.body);
+          res.status(204).json({ message: "Course Updated" });
+        } else {
+          res
+            .status(403)
+            .json({ message: "You are not authorized to edit this coures" });
+        }
       } else {
         res.status(404).json({ message: "Course Not found" });
       }
@@ -100,12 +130,19 @@ router.put(
 
 router.delete(
   "/courses/:id",
+  authenticateUser,
   asyncHandler(async (req, res) => {
     const course = await Course.findByPk(req.params.id);
 
     if (course) {
-      await course.destroy();
-      res.status(204).end();
+      if (req.currentUser.id === course.userId) {
+        await course.destroy();
+        res.status(204).end();
+      } else {
+        res
+          .status(403)
+          .json({ message: "You are not authorized to delete this coures" });
+      }
     } else {
       res.status(404).json({ message: "Course Not found" });
     }

@@ -4,6 +4,7 @@
 const express = require("express");
 const { asyncHandler } = require("../middleware/async-handler");
 const { User } = require("../models");
+const { authenticateUser } = require("../middleware/auth-user");
 
 const router = express.Router();
 
@@ -11,11 +12,18 @@ const router = express.Router();
 
 router.get(
   "/users",
+  authenticateUser,
   asyncHandler(async (req, res) => {
-    const users = await User.findAll({
+    const user = await User.findAll({
+      where: { id: req.currentUser.id },
       attributes: { exclude: ["createdAt", "updatedAt", "password"] },
     });
-    res.json(users);
+    console.log(user);
+    if (user) {
+      res.json(user);
+    } else {
+      res.status(400).json({ message: "user not found" });
+    }
   })
 );
 

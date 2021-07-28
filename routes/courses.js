@@ -27,7 +27,7 @@ router.get(
   })
 );
 
-// TODO: Send a GET request to /courses/:id route that will return the corresponding course including the User associated with that course and a 200 HTTP status code.
+// * Send a GET request to /courses/:id route that will return the corresponding course including the User associated with that course and a 200 HTTP status code.
 
 router.get(
   "/courses/:id",
@@ -50,7 +50,7 @@ router.get(
   })
 );
 
-// TODO: Send a POST request to /courses route that will create a new course, set the Location header to the URI for the newly created course, and return a 201 HTTP status code and no content.
+// * Send a POST request to /courses route that will create a new course, set the Location header to the URI for the newly created course, and return a 201 HTTP status code and no content.
 
 router.post(
   "/courses",
@@ -71,10 +71,7 @@ router.post(
       console.log("Error ", err.name);
 
       // * checks the type of Sequelize error
-      if (
-        err.name === "SequelizeValidationError" ||
-        err.name === "SequelizeUniqueConstraintError"
-      ) {
+      if (err.name === "SequelizeValidationError") {
         const errors = err.errors.map((err) => err.message);
         res.status(400).json({ errors });
       } else {
@@ -85,7 +82,7 @@ router.post(
   })
 );
 
-// TODO: Send a PUT request to /courses/:id route that will update the corresponding course and return a 204 HTTP status code and no content.
+// * Send a PUT request to /courses/:id route that will update the corresponding course and return a 204 HTTP status code and no content.
 
 router.put(
   "/courses/:id",
@@ -112,10 +109,7 @@ router.put(
       console.log("Error ", err.name);
 
       // * checks the type of Sequelize error
-      if (
-        err.name === "SequelizeValidationError" ||
-        err.name === "SequelizeUniqueConstraintError"
-      ) {
+      if (err.name === "SequelizeValidationError") {
         const errors = err.errors.map((err) => err.message);
         res.status(400).json({ errors });
       } else {
@@ -126,7 +120,7 @@ router.put(
   })
 );
 
-// TODO: Send a DELETE request to /course/:id route that will delete the corresponding course and return a 204 HTTP status code and no content.
+// * Send a DELETE request to /course/:id route that will delete the corresponding course and return a 204 HTTP status code and no content.
 
 router.delete(
   "/courses/:id",

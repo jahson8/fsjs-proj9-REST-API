@@ -63,10 +63,7 @@ router.post(
       courseBody.userId = req.currentUser.id;
 
       const course = await Course.create(courseBody);
-      res
-        .status(201)
-        .location(`/api/courses/${course.id}`)
-        .json({ message: "Course Created" });
+      res.status(201).location(`/api/courses/${course.id}`).end();
     } catch (err) {
       console.log("Error ", err.name);
 
